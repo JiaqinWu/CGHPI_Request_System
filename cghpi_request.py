@@ -4,6 +4,7 @@ import pandas as pd
 from millify import millify 
 from streamlit_extras.metric_cards import style_metric_cards
 from datetime import datetime, timedelta, date
+from zoneinfo import ZoneInfo
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import altair as alt
@@ -313,9 +314,9 @@ def generate_request_pdf(request_dict):
     story.append(scope_table)
     story.append(Spacer(1, 0.2 * inch))
 
-    # Footer
-    generated_on = datetime.today().strftime("%Y-%m-%d %H:%M")
-    footer_text = f"Generated on {generated_on} | CGHPI Communications Request System"
+    # Footer (New York / Eastern Time)
+    generated_on = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d %H:%M")
+    footer_text = f"Generated on {generated_on} (America/New_York) | CGHPI Communications Request System"
     story.append(Paragraph(footer_text, styles["Normal"]))
 
     doc.build(story)
