@@ -3,7 +3,7 @@ import re
 import pandas as pd
 from millify import millify 
 from streamlit_extras.metric_cards import style_metric_cards
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import altair as alt
@@ -890,7 +890,9 @@ else:
                     # Append new data to Google Sheet
                     updated_sheet = pd.concat([df, new_data], ignore_index=True)
                     updated_sheet = updated_sheet.applymap(
-                        lambda x: x.strftime("%Y-%m-%d") if isinstance(x, (datetime, pd.Timestamp)) else x
+                        lambda x: x.strftime("%Y-%m-%d")
+                        if isinstance(x, (datetime, pd.Timestamp, date))
+                        else x
                     )
                     # Replace NaN with empty strings to ensure JSON compatibility
                     updated_sheet = updated_sheet.fillna("")
@@ -1247,7 +1249,9 @@ else:
 
                                     # Write updated management_df back to Google Sheet
                                     updated_sheet = management_df.applymap(
-                                        lambda x: x.strftime("%Y-%m-%d") if isinstance(x, (datetime, pd.Timestamp)) else x
+                                        lambda x: x.strftime("%Y-%m-%d")
+                                        if isinstance(x, (datetime, pd.Timestamp, date))
+                                        else x
                                     )
                                     updated_sheet = updated_sheet.fillna("")
 
