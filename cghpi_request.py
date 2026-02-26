@@ -344,7 +344,20 @@ def _get_records_with_retry(spreadsheet_name, worksheet_name, retries=3, base_de
 @st.cache_data(ttl=600)
 def load_communication_sheet():
     df = pd.DataFrame(_get_records_with_retry('CGHPI_Request_System', 'Communication'))
-    df['Submit Date'] = pd.to_datetime(df['Submit Date'], errors='coerce')
+
+    # Normalize/construct a 'Submit Date' column robustly, since legacy sheets may use different headers.
+    submit_date_col = None
+    for candidate in ["Submit Date", "Submit date", "submit_date", "SubmitDate"]:
+        if candidate in df.columns:
+            submit_date_col = candidate
+            break
+
+    if submit_date_col:
+        df["Submit Date"] = pd.to_datetime(df[submit_date_col], errors="coerce")
+    else:
+        # Fallback: create an empty/NaT submit date column so downstream code works
+        df["Submit Date"] = pd.NaT
+
     return df
 
 df = load_communication_sheet()
