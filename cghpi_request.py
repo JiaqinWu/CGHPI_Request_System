@@ -508,9 +508,19 @@ else:
             """,
             unsafe_allow_html=True
         )
-        # Extract last Ticket ID from the existing sheet
-        last_ticket = df["Ticket ID"].dropna().astype(str).str.extract(r"GU(\d+)", expand=False).astype(int).max()
-        next_ticket_number = 1 if pd.isna(last_ticket) else last_ticket + 1
+        # Extract last Ticket ID from the existing sheet (robust to empty/no-column cases)
+        if "Ticket ID" in df.columns and not df["Ticket ID"].dropna().empty:
+            last_ticket = (
+                df["Ticket ID"]
+                .dropna()
+                .astype(str)
+                .str.extract(r"GU(\d+)", expand=False)
+                .astype(float)
+                .max()
+            )
+            next_ticket_number = 1 if pd.isna(last_ticket) else int(last_ticket) + 1
+        else:
+            next_ticket_number = 1
         new_ticket_id = f"GU{next_ticket_number:04d}"
         st.markdown("FORM DESCRIPTION")
         st.write("Please complete this form for all communications-related requests. Providing detailed information helps ensure your request is prioritized appropriately and completed on time. We will review your request and will be in touch within 1-2 business days.")
