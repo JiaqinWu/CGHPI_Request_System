@@ -713,28 +713,51 @@ else:
 
 
             drive_links = ""
-            # Required field checks
-            if not name: errors.append("Name is required.")
-            if not email: errors.append("Email Address is required.")
-            if not project: errors.append("Project/Grant is required.")
-            if not request_type: errors.append("Request Type is required.")
-            if not type_support: errors.append("Type of Support Needed is required.")
-            if not primary_purpose: errors.append("Primary Purpose is required.")
-            if not target_audience: errors.append("Target Audience is required.")
-            if not audience_action: errors.append("Audience Action is required.")
-            if not due_date: errors.append("Requested Due Date is required.")
-            if not driver_deadline: errors.append("Driver Deadline is required.")
-            if not tie_grant_deliverable: errors.append("Tie to Grant Deliverable is required.")
-            if not priority_level: errors.append("Priority Level is required.")
-            if not background_share: errors.append("Background Share is required.")
-            if not draft_copy: errors.append("Draft Copy is required.")
-            if not key_points: errors.append("Key Points is required.")
-            if not subject_matter: errors.append("Subject Matter is required.")
-            if not share_external: errors.append("Share Externally is required.")
-            if not information_include: errors.append("Information Include is required.")
-            if not permission_secure: errors.append("Permission Secure is required.")
-            if not estimated_length: errors.append("Estimated Length is required.")
-            if not live: errors.append("Live is required.")
+            # Required field checks (use full field descriptions to avoid confusion)
+            if not name:
+                errors.append("The field 'Requestor Name' is required.")
+            if not email:
+                errors.append("The field 'Email Address' is required.")
+            if not project:
+                errors.append("The field 'Project/Grant' is required.")
+            if not request_type:
+                errors.append("The field 'Request Type' is required.")
+            if not type_support:
+                errors.append("The field 'Type of Support Needed (Check all that apply)' is required.")
+            if not primary_purpose:
+                errors.append("The field 'Primary Purpose (Check all that apply)' is required.")
+            if not target_audience:
+                errors.append("The field 'Target Audience (Check all that apply)' is required.")
+            if not audience_action:
+                errors.append("The field 'What should the audience do after seeing this?' is required.")
+            if not due_date:
+                errors.append("The field 'Requested Due Date' is required.")
+            if not driver_deadline:
+                errors.append("The field 'What is driving this deadline?' is required.")
+            if not tie_grant_deliverable:
+                errors.append("The field 'Is this tied to a grant deliverable?' is required.")
+            if not priority_level:
+                errors.append("The field 'Priority Level' is required.")
+            if not background_share:
+                errors.append("The field 'Upload any background materials if available.' is required.")
+            if not draft_copy:
+                errors.append("The field 'Upload draft copy if available.' is required.")
+            if not key_points:
+                errors.append("The field 'Key Points to Include' is required.")
+            if not subject_matter:
+                errors.append("The field 'Subject Matter Expectations (if different from requestor)' is required.")
+            if not share_external:
+                errors.append("The field 'Will this be shared externally?' is required.")
+            if not information_include:
+                errors.append("The field 'Does this include any of the following? (Check all that apply)' is required.")
+            if not permission_secure:
+                errors.append("The field 'If photos or quotes are included, have permissions been secured?' is required.")
+            if not estimated_length:
+                errors.append("The field 'Estimated Length/Size' is required.")
+            if not level_of_design_support:
+                errors.append("The field 'Level of Design Support Needed' is required.")
+            if not live:
+                errors.append("The field 'Where will this live? (Check all that apply)' is required.")
             if "Other" in live and not live_other:
                 errors.append("Please specify where it will live when 'Other' is selected.")
 
