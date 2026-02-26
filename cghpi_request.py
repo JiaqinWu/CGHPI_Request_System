@@ -296,8 +296,8 @@ def generate_request_pdf(request_dict):
     story.append(Paragraph("Scope & Format", section_title_style))
     scope_data = [
         ["Estimated Length/Size", fmt(request_dict.get("Estimated Length"))],
+        ["Level of Design Support Needed", fmt(request_dict.get("Level of Design Support"))],
         ["Where it will live", fmt(request_dict.get("Live"))],
-        ["Additional notes on where it will live", fmt(request_dict.get("Live Other"))],
     ]
     scope_table = Table(scope_data, colWidths=[2.8 * inch, 5.4 * inch])
     scope_table.setStyle(
@@ -665,17 +665,27 @@ else:
                 placeholder="Select option...",
                 key="estimated_length"
             )
+
+        level_of_design_support = st.selectbox(
+                "Level of Design Support Needed *",
+                ['Minimal formatting','Template-based design','Custom design','Video production'],
+                index=None,
+                placeholder="Select option...",
+                key="level_of_design_support"
+            )
         live = st.multiselect(
             "Where will this live? (Check all that apply) *",
             ['Website','LinkedIn','Email distribution','Webinar','Conference','Shared Drive (Box)','Other'],
             placeholder="Select option...",
             key="live"
         )
-        live_other = st.text_input("Please specify where it will live *", key="live_other")
-        if live_other:
-            # Append custom location but keep selected options
-            if live_other not in live:
-                live = live + [live_other]
+        live_other = None
+        if "Other" in live:
+            live_other = st.text_input("Please specify where it will live *", key="live_other")
+            if live_other:
+                # Append custom location but keep selected options
+                if live_other not in live:
+                    live = live + [live_other]
         
         submit_date = datetime.today().strftime("%Y-%m-%d")
         
@@ -725,7 +735,8 @@ else:
             if not permission_secure: errors.append("Permission Secure is required.")
             if not estimated_length: errors.append("Estimated Length is required.")
             if not live: errors.append("Live is required.")
-            if not live_other: errors.append("Live Other is required.")
+            if "Other" in live and not live_other:
+                errors.append("Please specify where it will live when 'Other' is selected.")
 
             # Show warnings or success
             if errors:
@@ -799,8 +810,8 @@ else:
                     'Information Include': information_include,
                     'Permission Secure': permission_secure,
                     'Estimated Length': estimated_length,
+                    'Level of Design Support': level_of_design_support,
                     'Live': live,
-                    'Live Other': live_other,
                     'Submit Date': submit_date,
                 }
                 pdf_link = ""
@@ -840,8 +851,8 @@ else:
                     'Information Include': information_include,
                     'Permission Secure': permission_secure,
                     'Estimated Length': estimated_length,
+                    'Level of Design Support': level_of_design_support,
                     'Live': live,
-                    'Live Other': live_other,
                     'Submit Date': submit_date,
                     'Request PDF Link': pdf_link,
                     # Workflow status fields
