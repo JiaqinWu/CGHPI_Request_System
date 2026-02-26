@@ -522,10 +522,10 @@ else:
         else:
             next_ticket_number = 1
         new_ticket_id = f"GU{next_ticket_number:04d}"
-        st.markdown("FORM DESCRIPTION")
+        st.markdown("**FORM DESCRIPTION**")
         st.write("Please complete this form for all communications-related requests. Providing detailed information helps ensure your request is prioritized appropriately and completed on time. We will review your request and will be in touch within 1-2 business days.")
         # Requester form
-        st.markdown("SECTION 1: About the Request")
+        st.markdown("**SECTION 1: About the Request**")
         col1, col2 = st.columns(2)
         with col1:
             name = st.text_input("Requestor Name *",placeholder="Enter text", key="requester_name")
@@ -612,7 +612,7 @@ else:
 
         audience_action = st.text_area("What should the audience do after seeing this? *", placeholder="Example: Download toolkit, register for webinar, apply a practice, contact team, etc.", height=150, key="audience_action")
 
-        st.markdown("SECTION 2: Timeline & Priority")
+        st.markdown("**SECTION 2: Timeline & Priority**")
         due_date = st.date_input(
             "Requested Due Date *",
             value=None,
@@ -637,7 +637,7 @@ else:
                 placeholder="Select option...",
                 key="priority_level"
             )
-        st.markdown("SECTION 3: Content Inputs")
+        st.markdown("**SECTION 3: Content Inputs**")
         background_share = st.file_uploader(
             "Upload any background materials if available.",accept_multiple_files=True, key="background_share"
         )
@@ -648,7 +648,7 @@ else:
         key_points = st.text_area("Key Points to Include *", placeholder="Please provide bullet points, messages, or required language.", height=150, key="key_points")
         subject_matter = st.text_area("Subject Matter Expectations (if different from requestor) *", placeholder="Enter text here", height=150, key="subject_matter")
 
-        st.markdown("SECTION 4: Publishing & Compliance")
+        st.markdown("**SECTION 4: Publishing & Compliance**")
         share_external = st.selectbox("Will this be shared externally? *", ["Yes","Internal only","Unsure"], index=None, placeholder="Select option...", key="share_external")
         information_include = st.multiselect(
             "Does this include any of the following? (Check all that apply) *",
@@ -657,7 +657,7 @@ else:
             key="information_include"
         )
         permission_secure = st.selectbox("If photos or quotes are included, have permissions been secured? *", ["Yes","No","Not applicable"], index=None, placeholder="Select option...", key="permission_secure")
-        st.markdown("SECTION 5: Scope & Format")
+        st.markdown("**SECTION 5: Scope & Format**")
         estimated_length = st.selectbox(
                 "Estimated Length/Size *",
                 ['Short post (<300 words)','1-page product','2-5 pages','10+ pages','Multi-part series','Not surelive'],
