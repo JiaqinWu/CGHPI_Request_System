@@ -712,7 +712,9 @@ else:
             errors = []
 
 
-            drive_links = ""
+            # Track uploaded file links separately for background and draft copy
+            background_share_links = ""
+            draft_copy_links = ""
             # Required field checks (use full field descriptions to avoid confusion)
             if not name:
                 errors.append("The field 'Requestor Name' is required.")
@@ -773,8 +775,8 @@ else:
                         links = []
                         upload_count = 0
                         for file in background_share:
-                            # Rename file as: GU0001_filename.pdf
-                            renamed_filename = f"{draft_copy}_{file.name}_{submit_date}"
+                            # Rename file using ticket and context for clarity
+                            renamed_filename = f"{new_ticket_id}_background_{file.name}"
                             link = upload_file_to_drive(
                                 file=file,
                                 filename=renamed_filename,
@@ -784,7 +786,7 @@ else:
                             links.append(link)
                             upload_count += 1
                             st.success(f"✅ Successfully uploaded: {file.name}")
-                        drive_links = ", ".join(links)
+                        background_share_links = ", ".join(links)
                         if upload_count > 0:
                             st.success(f"✅ All {upload_count} file(s) uploaded successfully to Google Drive!")    
                     except Exception as e:
@@ -795,8 +797,8 @@ else:
                         links = []
                         upload_count = 0
                         for file in draft_copy:
-                            # Rename file as: GU0001_filename.pdf
-                            renamed_filename = f"{name}_{file.name}_{submit_date}"
+                            # Rename file using ticket and context for clarity
+                            renamed_filename = f"{new_ticket_id}_draft_{file.name}"
                             link = upload_file_to_drive(
                                 file=file,
                                 filename=renamed_filename,
@@ -806,7 +808,7 @@ else:
                             links.append(link)
                             upload_count += 1
                             st.success(f"✅ Successfully uploaded: {file.name}")
-                        drive_links = ", ".join(links)
+                        draft_copy_links = ", ".join(links)
                         if upload_count > 0:
                             st.success(f"✅ All {upload_count} file(s) uploaded successfully to Google Drive!")    
                     except Exception as e:
@@ -852,6 +854,10 @@ else:
                 except Exception as e:
                     st.error(f"❌ Error generating or uploading PDF summary: {str(e)}")
 
+                # Combine file links for storage
+                background_col_val = background_share_links or ""
+                draft_copy_col_val = draft_copy_links or ""
+
                 new_row = {
                     'Ticket ID': new_ticket_id,
                     'Project/Grant': project,
@@ -866,8 +872,9 @@ else:
                     'Driver Deadline': driver_deadline,
                     'Tie to Grant Deliverable': tie_grant_deliverable,
                     'Priority Level': priority_level,
-                    'Background Share': background_share,
-                    'Draft Copy': draft_copy,
+                    # Store Drive links (as text), not UploadedFile objects
+                    'Background Share': background_col_val,
+                    'Draft Copy': draft_copy_col_val,
                     'Key Points': key_points,
                     'Subject Matter': subject_matter,
                     'Share Externally': share_external,
@@ -910,6 +917,9 @@ else:
                     subject = f"New Communications Request Submitted: {new_ticket_id}"
                     for coord_email in coordinator_emails:
                         coordinator_name = USERS.get(coord_email, {}).get("Coordinator", {}).get("name", "Coordinator")
+                        attachments_links = ", ".join(
+                            [x for x in [background_share_links, draft_copy_links] if x]
+                        ) or "None"
                         personalized_body = f"""
                         Hi {coordinator_name},
 
@@ -929,7 +939,7 @@ else:
                         Share Externally: {share_external}
                         Estimated Length/Size: {estimated_length}
                         Where it will live: {", ".join(live) if isinstance(live, list) else live}
-                        Attachments (Drive links): {drive_links or 'None'}
+                        Attachments (Drive links): {attachments_links}
                         Request PDF: {pdf_link or 'Not available'}
 
                         Please log into the CGHPI Request System (https://cghpirequest.streamlit.app/) to review and manage this request.
