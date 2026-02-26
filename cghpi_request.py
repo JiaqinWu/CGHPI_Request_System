@@ -561,48 +561,54 @@ else:
         with col5:
             type_support = st.multiselect(
                 "Type of Support Needed (Check all that apply) *",
-                ['Copyediting'
-                'Web – landing page updates',
-                'Social media (site visit recap, case study, spotlight, update)',
-                'One-pager / Factsheet',
-                'Visuals (infographic, data visual, photos)',
-                'Video (explainer, toolkit module, interview)',
-                'Presentation support (slides)',
-                'Event support (webinar/workshop photography, recap)',
-                'Dissemination templates (slide deck, checklist, toolkit template)',
-                'Other'],
-                index=None,
+                [
+                    'Copyediting',
+                    'Web – landing page updates',
+                    'Social media (site visit recap, case study, spotlight, update)',
+                    'One-pager / Factsheet',
+                    'Visuals (infographic, data visual, photos)',
+                    'Video (explainer, toolkit module, interview)',
+                    'Presentation support (slides)',
+                    'Event support (webinar/workshop photography, recap)',
+                    'Dissemination templates (slide deck, checklist, toolkit template)',
+                    'Other',
+                ],
                 placeholder="Select option...",
                 key="type_support"
             )
-            if type_support == "Other":
+            if "Other" in type_support:
                 type_support_other = st.text_input("Please specify the type of support needed *", key="type_support_other")
                 if type_support_other:
-                    type_support = type_support_other 
+                    # Replace "Other" with custom value but keep any other selected options
+                    cleaned = [opt for opt in type_support if opt != "Other"]
+                    cleaned.append(type_support_other)
+                    type_support = cleaned
         with col6:
             primary_purpose = st.multiselect(
                 "Primary Purpose (Check all that apply) *",
                 ['Inform','Share learning','Promote an event/resource','Support TA delivery','Support reporting','Thought leadership','Other'],
-                index=None,
                 placeholder="Select option...",
                 key="primary_purpose"
             )
-            if primary_purpose == "Other":
+            if "Other" in primary_purpose:
                 primary_purpose_other = st.text_input("Please specify the type of support needed *", key="primary_purpose_other")
                 if primary_purpose_other:
-                    primary_purpose = primary_purpose_other  
+                    cleaned = [opt for opt in primary_purpose if opt != "Other"]
+                    cleaned.append(primary_purpose_other)
+                    primary_purpose = cleaned
         
         target_audience = st.multiselect(
             "Target Audience (Check all that apply) *",
             ['HRSA','Jurisdictions','National HIV audience','Global HIV audience','Internal team','Conference attendees','General public','Other'],
-            index=None,
             placeholder="Select option...",
             key="target_audience"
         )
-        if target_audience == "Other":
+        if "Other" in target_audience:
             target_audience_other = st.text_input("Please specify the target audience *", key="target_audience_other")
             if target_audience_other:
-                target_audience = target_audience_other 
+                cleaned = [opt for opt in target_audience if opt != "Other"]
+                cleaned.append(target_audience_other)
+                target_audience = cleaned
 
         audience_action = st.text_area("What should the audience do after seeing this? *", placeholder="Example: Download toolkit, register for webinar, apply a practice, contact team, etc.", height=150, key="audience_action")
 
@@ -647,7 +653,6 @@ else:
         information_include = st.multiselect(
             "Does this include any of the following? (Check all that apply) *",
             ['Identifiable jurisdiction information','Performance data or targets','Photos of people','Direct quotes','None of the above'],
-            index=None,
             placeholder="Select option...",
             key="information_include"
         )
@@ -663,13 +668,14 @@ else:
         live = st.multiselect(
             "Where will this live? (Check all that apply) *",
             ['Website','LinkedIn','Email distribution','Webinar','Conference','Shared Drive (Box)','Other'],
-            index=None,
             placeholder="Select option...",
             key="live"
         )
         live_other = st.text_input("Please specify where it will live *", key="live_other")
         if live_other:
-            live = live_other 
+            # Append custom location but keep selected options
+            if live_other not in live:
+                live = live + [live_other]
         
         submit_date = datetime.today().strftime("%Y-%m-%d")
         
