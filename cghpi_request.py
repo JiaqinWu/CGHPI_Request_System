@@ -699,13 +699,13 @@ else:
             placeholder="Select option...",
             key="live"
         )
-        live_other = None
         if "Other" in live:
             live_other = st.text_input("Please specify where it will live *", key="live_other")
             if live_other:
-                # Append custom location but keep selected options
-                if live_other not in live:
-                    live = live + [live_other]
+                # Replace "Other" with custom value but keep any other selected options
+                cleaned = [opt for opt in live if opt != "Other"]
+                cleaned.append(live_other)
+                live = cleaned
         
         submit_date = datetime.today().strftime("%Y-%m-%d")
         
