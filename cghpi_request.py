@@ -707,7 +707,7 @@ else:
                 cleaned.append(live_other)
                 live = cleaned
         
-        submit_date = datetime.today().strftime("%Y-%m-%d")
+        submit_date = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
         
         # Submit button
         st.markdown("""
