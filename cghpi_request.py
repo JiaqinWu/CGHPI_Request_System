@@ -362,38 +362,17 @@ def _get_records_with_retry(spreadsheet_name, worksheet_name, retries=3, base_de
     # If all retries failed, re-raise last exception
     raise last_exc
 
-def _empty_communication_df():
-    """Return an empty DataFrame with all expected Communication sheet columns."""
-    columns = [
-        "Ticket ID", "Project/Grant", "Name", "Email Address", "Request Type",
-        "Type of Support Needed", "Primary Purpose", "Target Audience", "Audience Action",
-        "Requested Due Date", "Driver Deadline", "Tie to Grant Deliverable", "Priority Level",
-        "Background Share", "Draft Copy", "Key Points", "Subject Matter", "Share Externally",
-        "Information Include", "Permission Secure", "Estimated Length", "Level of Design Support",
-        "Live", "Submit Date", "Request PDF Link", "Status", "Status Message", "Output Links", "Closed Date",
-    ]
-    return pd.DataFrame(columns=columns)
-
-
 @st.cache_data(ttl=600)
 def load_communication_sheet():
-    try:
-        records = _get_records_with_retry('CGHPI_Request_System', 'Communication')
-        df = pd.DataFrame(records)
-    except (gspread.exceptions.GSpreadException, Exception):
-        # Empty sheet, missing worksheet, or no header row can cause get_all_records to fail
-        df = _empty_communication_df()
+    df = pd.DataFrame(_get_records_with_retry('CGHPI_Request_System', 'Communication'))
 
-    # Ensure we have a DataFrame with at least the columns we need
-    if df.empty or len(df.columns) == 0:
-        df = _empty_communication_df()
-
-    # Normalize/construct a 'Submit Date' column robustly
+    # Normalize/construct a 'Submit Date' column robustly, since legacy sheets may use different headers.
     submit_date_col = None
     for candidate in ["Submit Date", "Submit date", "submit_date", "SubmitDate"]:
         if candidate in df.columns:
             submit_date_col = candidate
             break
+
     if submit_date_col:
         df["Submit Date"] = pd.to_datetime(df[submit_date_col], errors="coerce")
     else:
