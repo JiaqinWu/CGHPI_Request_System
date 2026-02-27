@@ -312,6 +312,26 @@ def generate_request_pdf(request_dict):
         )
     )
     story.append(scope_table)
+    story.append(Spacer(1, 0.15 * inch))
+
+    # Section: Attachments (Drive links for materials and draft)
+    story.append(Paragraph("Attachments (Google Drive)", section_title_style))
+    attachments_data = [
+        ["Background materials (Drive)", fmt(request_dict.get("Background Share"))],
+        ["Draft copy (Drive)", fmt(request_dict.get("Draft Copy"))],
+    ]
+    attachments_table = Table(attachments_data, colWidths=[2.2 * inch, 6.0 * inch])
+    attachments_table.setStyle(
+        TableStyle(
+            [
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
+            ]
+        )
+    )
+    story.append(attachments_table)
     story.append(Spacer(1, 0.2 * inch))
 
     # Footer (New York / Eastern Time)
@@ -839,6 +859,8 @@ else:
                     'Level of Design Support': level_of_design_support,
                     'Live': live,
                     'Submit Date': submit_date,
+                    'Background Share': background_share_links,
+                    'Draft Copy': draft_copy_links,
                 }
                 pdf_link = ""
                 try:
@@ -1049,8 +1071,6 @@ else:
             if st.session_state.role == "Coordinator":
                 user_info = USERS.get(st.session_state.user_email)
                 coordinator_name = user_info["Coordinator"]["name"]
-                # Check if current coordinator is Mabintou (only sees Travel Authorization Review Center)
-                is_mabintou_coordinator = st.session_state.user_email == "mo887@georgetown.edu"
                 st.markdown(
                     """
                     <div style='
@@ -1140,211 +1160,188 @@ else:
 
                 st.subheader("Request Management")
 
-                status_options = ["All", "Submitted", "In Progress", "Declined", "Completed"]
-                status_filter = st.selectbox(
-                    "Filter by status",
-                    status_options,
-                    index=0,
-                    key="status_filter"
-                )
+                def _render_request_details(row):
+                    st.markdown(f"**Project/Grant:** {row.get('Project/Grant', '')}")
+                    st.markdown(f"**Request Type:** {row.get('Request Type', '')}")
+                    st.markdown(f"**Type of Support Needed:** {row.get('Type of Support Needed', '')}")
+                    st.markdown(f"**Primary Purpose:** {row.get('Primary Purpose', '')}")
+                    st.markdown(f"**Target Audience:** {row.get('Target Audience', '')}")
+                    st.markdown(f"**Requested Due Date:** {row.get('Requested Due Date', '')}")
+                    st.markdown(f"**Priority Level:** {row.get('Priority Level', '')}")
+                    st.markdown(f"**Key Points:** {row.get('Key Points', '')}")
+                    st.markdown(f"**Share Externally:** {row.get('Share Externally', '')}")
+                    st.markdown(f"**Where it will live:** {row.get('Live', '')}")
+                    bg_links = row.get("Background Share", "") or ""
+                    draft_links = row.get("Draft Copy", "") or ""
+                    if bg_links:
+                        links_list = [u.strip() for u in str(bg_links).split(",") if u.strip()]
+                        st.markdown("**Background materials (Drive):** " + " ".join(f"[Link {i+1}]({link})" for i, link in enumerate(links_list)))
+                    else:
+                        st.markdown("**Background materials (Drive):** —")
+                    if draft_links:
+                        links_list = [u.strip() for u in str(draft_links).split(",") if u.strip()]
+                        st.markdown("**Draft copy (Drive):** " + " ".join(f"[Link {i+1}]({link})" for i, link in enumerate(links_list)))
+                    else:
+                        st.markdown("**Draft copy (Drive):** —")
+                    pdf_link = row.get("Request PDF Link", "") or ""
+                    if pdf_link:
+                        st.markdown(f"**Request PDF:** [View PDF]({pdf_link})")
+                    else:
+                        st.markdown("**Request PDF:** —")
 
-                if status_filter == "All":
-                    filtered_df = management_df
+                # ---------- Part 1: Submitted only — view by Ticket ID, set to In Progress or Declined ----------
+                st.markdown("#### Submitted requests — assign to In Progress or Declined")
+                submitted_df = management_df[management_df["Status"] == "Submitted"].copy()
+                if "Submit Date" in submitted_df.columns:
+                    submitted_df = submitted_df.sort_values("Submit Date", ascending=False)
+                submitted_ticket_ids = submitted_df["Ticket ID"].astype(str).tolist() if not submitted_df.empty else []
+
+                if not submitted_ticket_ids:
+                    st.info("No submitted requests.")
                 else:
-                    filtered_df = management_df[management_df["Status"] == status_filter]
-
-                if filtered_df.empty:
-                    st.info("No requests found for the selected filter.")
-                else:
-                    # Sort by most recent submit date first (falling back to Ticket ID)
-                    if "Submit Date" in filtered_df.columns:
-                        filtered_df = filtered_df.sort_values("Submit Date", ascending=False)
-
-                    for idx, row in filtered_df.iterrows():
-                        ticket_id = row.get("Ticket ID", "") or "N/A"
-                        requester_name = row.get("Name", "") or ""
-                        current_status = row.get("Status", "Submitted") or "Submitted"
-
-                        expander_label = f"{ticket_id} – {requester_name} ({current_status})"
-                        with st.expander(expander_label, expanded=(current_status == "Submitted")):
-                            # Basic request summary
-                            st.markdown(f"**Project/Grant:** {row.get('Project/Grant', '')}")
-                            st.markdown(f"**Request Type:** {row.get('Request Type', '')}")
-                            st.markdown(f"**Type of Support Needed:** {row.get('Type of Support Needed', '')}")
-                            st.markdown(f"**Primary Purpose:** {row.get('Primary Purpose', '')}")
-                            st.markdown(f"**Target Audience:** {row.get('Target Audience', '')}")
-                            st.markdown(f"**Requested Due Date:** {row.get('Requested Due Date', '')}")
-                            st.markdown(f"**Priority Level:** {row.get('Priority Level', '')}")
-                            st.markdown(f"**Key Points:** {row.get('Key Points', '')}")
-                            st.markdown(f"**Share Externally:** {row.get('Share Externally', '')}")
-                            st.markdown(f"**Where it will live:** {row.get('Live', '')}")
-                            st.markdown(f"**Request PDF:** {row.get('Request PDF Link', '')}")
-
+                    selected_submitted_id = st.selectbox(
+                        "Select Ticket ID (Submitted)",
+                        options=submitted_ticket_ids,
+                        key="submitted_ticket_id"
+                    )
+                    if selected_submitted_id:
+                        row_sub = submitted_df[submitted_df["Ticket ID"].astype(str) == selected_submitted_id].iloc[0]
+                        idx_sub = management_df[management_df["Ticket ID"].astype(str) == selected_submitted_id].index[0]
+                        requester_name_sub = row_sub.get("Name", "") or ""
+                        with st.expander(f"View request: {selected_submitted_id} – {requester_name_sub}", expanded=True):
+                            _render_request_details(row_sub)
                             st.markdown("---")
-
-                            # Status controls
-                            status_choices = ["Submitted", "In Progress", "Declined", "Completed"]
-                            current_status_index = status_choices.index(current_status) if current_status in status_choices else 0
-                            new_status = st.selectbox(
-                                "Status",
-                                status_choices,
-                                index=current_status_index,
-                                key=f"status_{ticket_id}"
+                            new_status_sub = st.selectbox(
+                                "Change status to",
+                                ["In Progress", "Declined"],
+                                key="submitted_status"
                             )
-
-                            message_default = row.get("Status Message", "") or ""
-                            status_message = st.text_area(
-                                "Message to requester",
-                                value=message_default,
-                                height=120,
-                                key=f"status_msg_{ticket_id}"
+                            message_default_sub = row_sub.get("Status Message", "") or ""
+                            status_message_sub = st.text_area(
+                                "Message to requester (required)",
+                                value=message_default_sub,
+                                height=100,
+                                key="submitted_msg"
                             )
-
-                            output_files = None
-                            if new_status == "Completed":
-                                output_files = st.file_uploader(
-                                    "Attach output files (optional)",
-                                    accept_multiple_files=True,
-                                    key=f"outputs_{ticket_id}"
-                                )
-
-                            if st.button("Save updates", key=f"save_{ticket_id}"):
-                                validation_errors = []
-                                if new_status in ["In Progress", "Declined", "Completed"] and not status_message.strip():
-                                    validation_errors.append("Please add a message for this status update.")
-
-                                if validation_errors:
-                                    for err in validation_errors:
-                                        st.warning(err)
+                            if st.button("Save status", key="submitted_save"):
+                                if not status_message_sub.strip():
+                                    st.warning("Please add a message to the requester.")
                                 else:
-                                    # Update the management_df row
-                                    management_df.loc[idx, "Status"] = new_status
-                                    management_df.loc[idx, "Status Message"] = status_message
-
-                                    # Closed date logic
-                                    if new_status == "Completed":
-                                        management_df.loc[idx, "Closed Date"] = datetime.today().strftime("%Y-%m-%d")
-                                    elif new_status in ["Submitted", "In Progress", "Declined"]:
-                                        # Keep existing closed date if already set, otherwise blank
-                                        if pd.isna(management_df.loc[idx, "Closed Date"]):
-                                            management_df.loc[idx, "Closed Date"] = ""
-
-                                    # Handle output file uploads when marking as completed
-                                    existing_output_links = row.get("Output Links", "") or ""
-                                    if new_status == "Completed" and output_files:
-                                        try:
-                                            folder_id = "188y2H9OkCaqTFSMShTFe6uK0oJihAup1"
-                                            links = []
-                                            upload_count = 0
-                                            today_str = datetime.today().strftime("%Y-%m-%d")
-                                            for file in output_files:
-                                                renamed_filename = f"{ticket_id}_output_{file.name}_{today_str}"
-                                                link = upload_file_to_drive(
-                                                    file=file,
-                                                    filename=renamed_filename,
-                                                    folder_id=folder_id,
-                                                    creds_dict=st.secrets["gcp_service_account"]
-                                                )
-                                                links.append(link)
-                                                upload_count += 1
-                                                st.success(f"✅ Successfully uploaded output file: {file.name}")
-                                            all_links = []
-                                            if existing_output_links:
-                                                all_links.extend([l.strip() for l in existing_output_links.split(",") if l.strip()])
-                                            all_links.extend(links)
-                                            management_df.loc[idx, "Output Links"] = ", ".join(all_links)
-                                            if upload_count > 0:
-                                                st.success(f"✅ All {upload_count} output file(s) uploaded successfully to Google Drive!")
-                                        except Exception as e:
-                                            st.error(f"❌ Error uploading output file(s) to Google Drive: {str(e)}")
-                                            # Preserve existing links if upload fails
-                                            management_df.loc[idx, "Output Links"] = existing_output_links
-                                    else:
-                                        management_df.loc[idx, "Output Links"] = existing_output_links
-
-                                    # Write updated management_df back to Google Sheet
+                                    management_df.loc[idx_sub, "Status"] = new_status_sub
+                                    management_df.loc[idx_sub, "Status Message"] = status_message_sub
+                                    management_df.loc[idx_sub, "Output Links"] = row_sub.get("Output Links", "") or ""
+                                    if pd.isna(management_df.loc[idx_sub, "Closed Date"]) or str(management_df.loc[idx_sub, "Closed Date"]).strip() == "":
+                                        management_df.loc[idx_sub, "Closed Date"] = ""
                                     updated_sheet = management_df.applymap(
-                                        lambda x: ", ".join(str(v) for v in x)
-                                        if isinstance(x, list)
-                                        else (
-                                            x.strftime("%Y-%m-%d")
-                                            if isinstance(x, (datetime, pd.Timestamp, date))
-                                            else x
-                                        )
+                                        lambda x: ", ".join(str(v) for v in x) if isinstance(x, list) else (x.strftime("%Y-%m-%d") if isinstance(x, (datetime, pd.Timestamp, date)) else x)
                                     )
                                     updated_sheet = updated_sheet.fillna("")
-
                                     try:
                                         spreadsheet2 = client.open('CGHPI_Request_System')
                                         worksheet2 = spreadsheet2.worksheet('Communication')
                                         worksheet2.update([updated_sheet.columns.values.tolist()] + updated_sheet.values.tolist())
                                     except Exception as e:
-                                        st.error(f"Error updating Google Sheets with status change: {str(e)}")
+                                        st.error(f"Error updating Google Sheets: {str(e)}")
                                     else:
-                                        # Send email notification to requester about the status change
-                                        requester_email = row.get("Email Address", "")
-                                        requester_name = requester_name or "there"
-
+                                        requester_email = row_sub.get("Email Address", "")
                                         if requester_email:
-                                            if new_status == "In Progress":
-                                                subject = f"Your Communications Request ({ticket_id}) is now In Progress"
-                                                body = f"""
-                                                Hi {requester_name},
-
-                                                Your communications request ({ticket_id}) has been reviewed and is now **In Progress**.
-
-                                                Message from coordinator:
-                                                {status_message}
-
-                                                Best,
-                                                CGHPI Request System
-                                                """
-                                            elif new_status == "Declined":
-                                                subject = f"Your Communications Request ({ticket_id}) has been Declined"
-                                                body = f"""
-                                                Hi {requester_name},
-
-                                                Your communications request ({ticket_id}) has been reviewed and **declined**.
-
-                                                Message from coordinator:
-                                                {status_message}
-
-                                                If you have questions, please contact ew898@georgetown.edu.
-
-                                                Best,
-                                                CGHPI Request System
-                                                """
-                                            elif new_status == "Completed":
-                                                subject = f"Your Communications Request ({ticket_id}) has been Completed"
-                                                body = f"""
-                                                Hi {requester_name},
-
-                                                Your communications request ({ticket_id}) has been marked as **Completed**.
-
-                                                Message from coordinator:
-                                                {status_message}
-
-                                                Output files (if any): {management_df.loc[idx, 'Output Links'] or 'None'}
-
-                                                Best,
-                                                CGHPI Request System
-                                                """
+                                            if new_status_sub == "In Progress":
+                                                subject = f"Your Communications Request ({selected_submitted_id}) is now In Progress"
+                                                body = f"Hi {requester_name_sub},\n\nYour communications request ({selected_submitted_id}) has been reviewed and is now **In Progress**.\n\nMessage from Eric:\n{status_message_sub}\n\nBest,\nCGHPI Request System"
                                             else:
-                                                # For Submitted (rare to send) we skip sending an additional email
-                                                subject = None
-                                                body = None
-
-                                            if subject and body:
-                                                try:
-                                                    send_email_mailjet(
-                                                        to_email=requester_email,
-                                                        subject=subject,
-                                                        body=body,
-                                                    )
-                                                except Exception as e:
-                                                    st.warning(f"⚠️ Failed to send status email to requester: {e}")
-
-                                        st.success("Request updated successfully.")
+                                                subject = f"Your Communications Request ({selected_submitted_id}) has been Declined"
+                                                body = f"Hi {requester_name_sub},\n\nYour communications request ({selected_submitted_id}) has been reviewed and **declined**.\n\nMessage from Eric:\n{status_message_sub}\n\nIf you have questions, please contact ew898@georgetown.edu.\n\nBest,\nCGHPI Request System"
+                                            try:
+                                                send_email_mailjet(to_email=requester_email, subject=subject, body=body)
+                                            except Exception as e:
+                                                st.warning(f"⚠️ Failed to send email: {e}")
+                                        st.success("Status updated.")
                                         st.cache_data.clear()
                                         time.sleep(1)
                                         st.rerun()
+
+                st.markdown("---")
+                # ---------- Part 2: In progress only — select Ticket ID, mark as Completed ----------
+                st.markdown("#### In progress requests — mark as completed")
+                inprogress_df = management_df[management_df["Status"] == "In Progress"].copy()
+                if "Submit Date" in inprogress_df.columns:
+                    inprogress_df = inprogress_df.sort_values("Submit Date", ascending=False)
+                inprogress_ticket_ids = inprogress_df["Ticket ID"].astype(str).tolist() if not inprogress_df.empty else []
+
+                if not inprogress_ticket_ids:
+                    st.info("No in-progress requests.")
+                else:
+                    selected_inprogress_id = st.selectbox(
+                        "Select Ticket ID (In progress)",
+                        options=inprogress_ticket_ids,
+                        key="inprogress_ticket_id"
+                    )
+                    if selected_inprogress_id:
+                        row_ip = inprogress_df[inprogress_df["Ticket ID"].astype(str) == selected_inprogress_id].iloc[0]
+                        idx_ip = management_df[management_df["Ticket ID"].astype(str) == selected_inprogress_id].index[0]
+                        requester_name_ip = row_ip.get("Name", "") or ""
+                        with st.expander(f"View request: {selected_inprogress_id} – {requester_name_ip}", expanded=True):
+                            _render_request_details(row_ip)
+                            st.markdown("---")
+                            st.caption("Mark this request as **Completed**. Optionally add a message and attach output files.")
+                            message_default_ip = row_ip.get("Status Message", "") or ""
+                            status_message_ip = st.text_area(
+                                "Message to requester (required)",
+                                value=message_default_ip,
+                                height=100,
+                                key="inprogress_msg"
+                            )
+                            output_files_ip = st.file_uploader(
+                                "Attach output files (optional)",
+                                accept_multiple_files=True,
+                                key="inprogress_outputs"
+                            )
+                            if st.button("Mark as completed", key="inprogress_save"):
+                                if not status_message_ip.strip():
+                                    st.warning("Please add a message to the requester.")
+                                else:
+                                    management_df.loc[idx_ip, "Status"] = "Completed"
+                                    management_df.loc[idx_ip, "Status Message"] = status_message_ip
+                                    management_df.loc[idx_ip, "Closed Date"] = datetime.today().strftime("%Y-%m-%d")
+                                    existing_output_links_ip = row_ip.get("Output Links", "") or ""
+                                    if output_files_ip:
+                                        try:
+                                            folder_id = "188y2H9OkCaqTFSMShTFe6uK0oJihAup1"
+                                            links = []
+                                            today_str = datetime.today().strftime("%Y-%m-%d")
+                                            for file in output_files_ip:
+                                                link = upload_file_to_drive(file=file, filename=f"{selected_inprogress_id}_output_{file.name}_{today_str}", folder_id=folder_id, creds_dict=st.secrets["gcp_service_account"])
+                                                links.append(link)
+                                                st.success(f"✅ Uploaded: {file.name}")
+                                            all_links = [l.strip() for l in existing_output_links_ip.split(",") if l.strip()] if existing_output_links_ip else []
+                                            all_links.extend(links)
+                                            management_df.loc[idx_ip, "Output Links"] = ", ".join(all_links)
+                                        except Exception as e:
+                                            st.error(f"Error uploading output files: {str(e)}")
+                                            management_df.loc[idx_ip, "Output Links"] = existing_output_links_ip
+                                    else:
+                                        management_df.loc[idx_ip, "Output Links"] = existing_output_links_ip
+                                    updated_sheet = management_df.applymap(
+                                        lambda x: ", ".join(str(v) for v in x) if isinstance(x, list) else (x.strftime("%Y-%m-%d") if isinstance(x, (datetime, pd.Timestamp, date)) else x)
+                                    )
+                                    updated_sheet = updated_sheet.fillna("")
+                                    try:
+                                        spreadsheet2 = client.open('CGHPI_Request_System')
+                                        worksheet2 = spreadsheet2.worksheet('Communication')
+                                        worksheet2.update([updated_sheet.columns.values.tolist()] + updated_sheet.values.tolist())
+                                    except Exception as e:
+                                        st.error(f"Error updating Google Sheets: {str(e)}")
+                                    else:
+                                        requester_email = row_ip.get("Email Address", "")
+                                        if requester_email:
+                                            subject = f"Your Communications Request ({selected_inprogress_id}) has been Completed"
+                                            body = f"Hi {requester_name_ip},\n\nYour communications request ({selected_inprogress_id}) has been marked as **Completed**.\n\nMessage from coordinator:\n{status_message_ip}\n\nOutput files (if any): {management_df.loc[idx_ip, 'Output Links'] or 'None'}\n\nBest,\nCGHPI Request System"
+                                            try:
+                                                send_email_mailjet(to_email=requester_email, subject=subject, body=body)
+                                            except Exception as e:
+                                                st.warning(f"⚠️ Failed to send email: {e}")
+                                        st.success("Marked as completed.")
+                                        st.cache_data.clear()
+                                        time.sleep(1)
+                                        st.rerun()
+
