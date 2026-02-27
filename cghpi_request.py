@@ -1070,6 +1070,24 @@ else:
             if st.session_state.role == "Coordinator":
                 user_info = USERS.get(st.session_state.user_email)
                 coordinator_name = user_info["Coordinator"]["name"]
+
+                # Coordinator design: Times New Roman, refined layout
+                st.markdown("""
+                <style>
+                /* Times New Roman throughout coordinator view */
+                [data-testid="stAppViewContainer"] { font-family: "Times New Roman", Times, serif !important; }
+                [data-testid="stAppViewContainer"] .stMarkdown, [data-testid="stAppViewContainer"] p,
+                [data-testid="stAppViewContainer"] label, [data-testid="stAppViewContainer"] .stSelectbox label,
+                [data-testid="stAppViewContainer"] .stTextInput label, [data-testid="stAppViewContainer"] .stTextArea label { font-family: "Times New Roman", Times, serif !important; }
+                [data-testid="stMetricValue"] { font-family: "Times New Roman", Times, serif !important; }
+                [data-testid="stMetricLabel"] { font-family: "Times New Roman", Times, serif !important; }
+                [data-testid="stExpander"] summary { font-family: "Times New Roman", Times, serif !important; }
+                [data-testid="stButton"] button { font-family: "Times New Roman", Times, serif !important; }
+                [data-testid="stExpander"] { border: 1px solid rgba(26,35,126,0.12); border-radius: 8px; margin-bottom: 0.6em; }
+                [data-testid="stExpander"] summary { padding: 0.8em 1em; font-size: 1.05em; }
+                </style>
+                """, unsafe_allow_html=True)
+
                 st.markdown(
                     """
                     <div style='
@@ -1077,49 +1095,58 @@ else:
                         flex-direction: column;
                         align-items: center;
                         justify-content: center;
-                        background: #f8f9fa;
-                        padding: 2em 0 1em 0;
-                        border-radius: 18px;
-                        box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+                        background: linear-gradient(180deg, #f8f9fc 0%, #eef1f8 100%);
+                        padding: 2.2em 0 1.4em 0;
+                        border-radius: 16px;
+                        box-shadow: 0 2px 16px rgba(26,35,126,0.08);
                         margin-bottom: 2em;
+                        border: 1px solid rgba(26,35,126,0.1);
                     '>
-                        <img src='https://raw.githubusercontent.com/JiaqinWu/HRSA64_Dash/main/Georgetown_logo_blueRGB.png' width='200' style='margin-bottom: 1em;'/>
+                        <img src='https://raw.githubusercontent.com/JiaqinWu/HRSA64_Dash/main/Georgetown_logo_blueRGB.png' width='180' style='margin-bottom: 1em;'/>
                         <h1 style='
                             color: #1a237e;
-                            font-family: "Segoe UI", "Arial", sans-serif;
-                            font-weight: 700;
+                            font-family: "Times New Roman", Times, serif;
+                            font-weight: 600;
                             margin: 0;
-                            font-size: 2.2em;
+                            font-size: 2em;
                             text-align: center;
-                        '>📬 Coordinator Dashboard</h1>
+                            letter-spacing: 0.3px;
+                        '>Coordinator Dashboard</h1>
                     </div>
                     """,
                     unsafe_allow_html=True
                 )
-                #st.header("📬 Coordinator Dashboard")
-                # Personalized greeting
                 if user_info and "Coordinator" in user_info:
                     st.markdown(f"""
-                    <div style='                      
-                    background: #f8f9fa;                        
-                    border-radius: 12px;                        
-                    box-shadow: 0 2px 8px rgba(0,0,0,0.04);                        
-                    padding: 1.2em 1em 1em 1em;                        
-                    margin-bottom: 1.5em;                        
-                    text-align: center;                        
-                    font-family: Arial, "Segoe UI", sans-serif;                    
+                    <div style='
+                        background: linear-gradient(135deg, #fafbfd 0%, #f5f7fb 100%);
+                        border-radius: 12px;
+                        box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+                        padding: 1.2em 1.4em;
+                        margin-bottom: 1.8em;
+                        text-align: center;
+                        font-family: "Times New Roman", Times, serif;
+                        border: 1px solid rgba(26,35,126,0.08);
                     '>
-                        <span style='                           
-                        font-size: 1.15em;
-                        font-weight: 700;
-                        color: #1a237e;
-                        letter-spacing: 0.5px;'>
-                            👋 Welcome, {coordinator_name}!
-                        </span>
+                        <span style='
+                            font-size: 1.2em;
+                            font-weight: 600;
+                            color: #1a237e;
+                            letter-spacing: 0.4px;
+                        '>Welcome, {coordinator_name}</span>
                     </div>
                     """, unsafe_allow_html=True)
-                
-                # Dashboard Overview Metrics - visible to all coordinators (no header, just show metrics directly)
+
+                # Dashboard Overview Metrics
+                st.markdown("""
+                <div style='
+                    font-family: "Times New Roman", Times, serif;
+                    font-size: 1.1em;
+                    font-weight: 600;
+                    color: #1a237e;
+                    margin: 0.6em 0 0.4em 0;
+                '>Overview</div>
+                """, unsafe_allow_html=True)
                 col1, col2, col3 = st.columns(3)
                 total_request = df['Ticket ID'].nunique()
                 submitted_request = df[df['Status'] == 'Submitted']['Ticket ID'].nunique()
@@ -1128,7 +1155,7 @@ else:
                 col1.metric(label="# of Total Requests", value=millify(total_request, precision=2))
                 col2.metric(label="# of Submitted Requests", value=millify(submitted_request, precision=2))
                 col3.metric(label="# of In-Progress Requests", value=millify(inprogress_request, precision=2))
-                style_metric_cards(border_left_color="#DBF227")
+                style_metric_cards(border_left_color="#1a237e")
 
                 col1, col2, col3 = st.columns(3)
                 today = datetime.today()
@@ -1140,7 +1167,7 @@ else:
                 col1.metric(label="# of Declined Requests", value=millify(declined_request, precision=2))
                 col2.metric(label="# of Completed Requests", value=millify(completed_request, precision=2))
                 col3.metric(label="# of Requests (last 30 days)", value=millify(recent_request, precision=2))
-                style_metric_cards(border_left_color="#DBF227")
+                style_metric_cards(border_left_color="#1a237e")
 
                 # ------------------------------
                 # Request management and status workflow
@@ -1157,7 +1184,17 @@ else:
                     if col_name not in management_df.columns:
                         management_df[col_name] = ""
 
-                st.subheader("Request Management")
+                st.markdown("""
+                <div style='
+                    font-family: "Times New Roman", Times, serif;
+                    font-size: 1.4em;
+                    font-weight: 600;
+                    color: #1a237e;
+                    margin: 1.6em 0 0.8em 0;
+                    padding-bottom: 0.4em;
+                    border-bottom: 2px solid rgba(26,35,126,0.2);
+                '>Request Management</div>
+                """, unsafe_allow_html=True)
 
                 def _render_request_details(row):
                     st.markdown(f"**Project/Grant:** {row.get('Project/Grant', '')}")
@@ -1189,7 +1226,19 @@ else:
                         st.markdown("**Request PDF:** —")
 
                 # ---------- Part 1: Submitted only — view by Ticket ID, set to In Progress or Declined ----------
-                st.markdown("#### Submitted requests — assign to In Progress or Declined")
+                st.markdown("""
+                <div style='
+                    font-family: "Times New Roman", Times, serif;
+                    font-size: 1.15em;
+                    font-weight: 600;
+                    color: #283593;
+                    margin: 1.2em 0 0.5em 0;
+                    padding: 0.5em 0.8em;
+                    background: rgba(26,35,126,0.06);
+                    border-radius: 8px;
+                    border-left: 4px solid #1a237e;
+                '>Submitted requests — assign to In Progress or Declined</div>
+                """, unsafe_allow_html=True)
                 submitted_df = management_df[management_df["Status"] == "Submitted"].copy()
                 if "Submit Date" in submitted_df.columns:
                     submitted_df = submitted_df.sort_values("Submit Date", ascending=False)
@@ -1259,9 +1308,23 @@ else:
                                         time.sleep(1)
                                         st.rerun()
 
-                st.markdown("---")
+                st.markdown("""
+                <div style='margin: 2em 0; border-top: 1px solid rgba(26,35,126,0.15);'></div>
+                """, unsafe_allow_html=True)
                 # ---------- Part 2: In progress only — select Ticket ID, mark as Completed ----------
-                st.markdown("#### In progress requests — mark as completed")
+                st.markdown("""
+                <div style='
+                    font-family: "Times New Roman", Times, serif;
+                    font-size: 1.15em;
+                    font-weight: 600;
+                    color: #283593;
+                    margin: 1.2em 0 0.5em 0;
+                    padding: 0.5em 0.8em;
+                    background: rgba(26,35,126,0.06);
+                    border-radius: 8px;
+                    border-left: 4px solid #1a237e;
+                '>In progress requests — mark as completed</div>
+                """, unsafe_allow_html=True)
                 inprogress_df = management_df[management_df["Status"] == "In Progress"].copy()
                 if "Submit Date" in inprogress_df.columns:
                     inprogress_df = inprogress_df.sort_values("Submit Date", ascending=False)
