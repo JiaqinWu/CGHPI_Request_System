@@ -208,10 +208,12 @@ def generate_request_pdf(request_dict):
     story.append(Spacer(1, 0.15 * inch))
 
     # Basic info table
+    request_name = fmt(request_dict.get("Request Name"))
     basic_data = [
-        ["Ticket ID", ticket_id, "Submit Date", submit_date],
-        ["Requestor Name", fmt(request_dict.get("Name")), "Email Address", fmt(request_dict.get("Email Address"))],
-        ["Project/Grant", fmt(request_dict.get("Project/Grant")), "Request Type", fmt(request_dict.get("Request Type"))],
+        ["Ticket ID", ticket_id, "Request Name", request_name],
+        ["Submit Date", submit_date, "Requestor Name", fmt(request_dict.get("Name"))],
+        ["Email Address", fmt(request_dict.get("Email Address")), "Project/Grant", fmt(request_dict.get("Project/Grant"))],
+        ["Request Type", fmt(request_dict.get("Request Type")), "", ""],
     ]
     basic_table = Table(basic_data, colWidths=[1.7 * inch, 2.3 * inch, 1.7 * inch, 2.3 * inch])
     basic_table.setStyle(
@@ -236,7 +238,7 @@ def generate_request_pdf(request_dict):
         ["Target Audience", fmt(request_dict.get("Target Audience"))],
         ["Audience Action", fmt(request_dict.get("Audience Action"))],
         ["Key Points to Include", fmt(request_dict.get("Key Points"))],
-        ["Subject Matter Expectations", fmt(request_dict.get("Subject Matter"))],
+        ["Subject Matter Expert", fmt(request_dict.get("Subject Matter"))],
     ]
     details_table = Table(details_data, colWidths=[2.2 * inch, 6.0 * inch])
     details_table.setStyle(
@@ -546,9 +548,10 @@ else:
         st.write("Please complete this form for all communications-related requests. Providing detailed information helps ensure your request is prioritized appropriately and completed on time. We will review your request and will be in touch within 1-2 business days.")
         # Requester form
         st.markdown("**SECTION 1: About the Request**")
+        request_name = st.text_input("Request name *", placeholder="e.g., Q1 Newsletter, Site Visit Recap", key="request_name")
         col1, col2 = st.columns(2)
         with col1:
-            name = st.text_input("Requestor Name *",placeholder="Enter text", key="requester_name")
+            name = st.text_input("Requestor Name *", placeholder="Enter text", key="requester_name")
         with col2:
             email = st.text_input("Email Address *",placeholder='Enter text', key="email_address")
         col3, col4 = st.columns(2)
@@ -562,7 +565,7 @@ else:
             )
             # If "Other" is selected, show a text input for custom value
             if project == "Other":
-                project_other = st.text_input("Please specify the project/grant *", key="project_grant_other")
+                project_other = st.text_input("Please specify the project/grant *", placeholder="If none, type N/A.", key="project_grant_other")
                 if project_other:
                     project = project_other 
         with col4:
@@ -597,7 +600,7 @@ else:
                 key="type_support"
             )
             if "Other" in type_support:
-                type_support_other = st.text_input("Please specify the type of support needed *", key="type_support_other")
+                type_support_other = st.text_input("Please specify the type of support needed *", placeholder="If none, type N/A.", key="type_support_other")
                 if type_support_other:
                     # Replace "Other" with custom value but keep any other selected options
                     cleaned = [opt for opt in type_support if opt != "Other"]
@@ -611,7 +614,7 @@ else:
                 key="primary_purpose"
             )
             if "Other" in primary_purpose:
-                primary_purpose_other = st.text_input("Please specify the type of support needed *", key="primary_purpose_other")
+                primary_purpose_other = st.text_input("Please specify the type of support needed *", placeholder="If none, type N/A.", key="primary_purpose_other")
                 if primary_purpose_other:
                     cleaned = [opt for opt in primary_purpose if opt != "Other"]
                     cleaned.append(primary_purpose_other)
@@ -624,13 +627,13 @@ else:
             key="target_audience"
         )
         if "Other" in target_audience:
-            target_audience_other = st.text_input("Please specify the target audience *", key="target_audience_other")
+            target_audience_other = st.text_input("Please specify the target audience *", placeholder="If none, type N/A.", key="target_audience_other")
             if target_audience_other:
                 cleaned = [opt for opt in target_audience if opt != "Other"]
                 cleaned.append(target_audience_other)
                 target_audience = cleaned
 
-        audience_action = st.text_area("What should the audience do after seeing this? *", placeholder="Example: Download toolkit, register for webinar, apply a practice, contact team, etc.", height=150, key="audience_action")
+        audience_action = st.text_area("What should the audience do after seeing this? *", placeholder="Example: Download toolkit, register for webinar, apply a practice, contact team, etc. If none, type N/A.", height=150, key="audience_action")
 
         st.markdown("**SECTION 2: Timeline & Priority**")
         due_date = st.date_input(
@@ -638,7 +641,7 @@ else:
             value=None,
             key="requested_due_date"
         )
-        driver_deadline = st.text_input("What is driving this deadline? *", placeholder="Event, grant deliverable, conference, leadership request, etc.", key="driver_deadline")
+        driver_deadline = st.text_input("What is driving this deadline? *", placeholder="Event, grant deliverable, conference, leadership request, etc. If none, type N/A.", key="driver_deadline")
         col7, col8 = st.columns(2)
         with col7:
             tie_grant_deliverable = st.selectbox(
@@ -665,8 +668,8 @@ else:
             "Upload draft copy if available.",accept_multiple_files=True, key="draft_copy"
         )
 
-        key_points = st.text_area("Key Points to Include *", placeholder="Please provide bullet points, messages, or required language.", height=150, key="key_points")
-        subject_matter = st.text_area("Subject Matter Expectations (if different from requestor) *", placeholder="Enter text here", height=150, key="subject_matter")
+        key_points = st.text_area("Key Points to Include *", placeholder="Please provide bullet points, messages, or required language. If none, type N/A.", height=150, key="key_points")
+        subject_matter = st.text_area("Subject Matter Expert *", placeholder="Provide name, role, and email. If none, type N/A.", height=150, key="subject_matter")
 
         st.markdown("**SECTION 4: Publishing & Compliance**")
         share_external = st.selectbox("Will this be shared externally? *", ["Yes","Internal only","Unsure"], index=None, placeholder="Select option...", key="share_external")
@@ -700,7 +703,7 @@ else:
             key="live"
         )
         if "Other" in live:
-            live_other = st.text_input("Please specify where it will live *", key="live_other")
+            live_other = st.text_input("Please specify where it will live *", placeholder="If none, type N/A.", key="live_other")
             if live_other:
                 # Replace "Other" with custom value but keep any other selected options
                 cleaned = [opt for opt in live if opt != "Other"]
@@ -736,6 +739,8 @@ else:
             background_share_links = ""
             draft_copy_links = ""
             # Required field checks (use full field descriptions to avoid confusion)
+            if not request_name:
+                errors.append("The field 'Request name' is required.")
             if not name:
                 errors.append("The field 'Requestor Name' is required.")
             if not email:
@@ -767,7 +772,7 @@ else:
             if not key_points:
                 errors.append("The field 'Key Points to Include' is required.")
             if not subject_matter:
-                errors.append("The field 'Subject Matter Expectations (if different from requestor)' is required.")
+                errors.append("The field 'Subject Matter Expert' is required.")
             if not share_external:
                 errors.append("The field 'Will this be shared externally?' is required.")
             if not information_include:
@@ -837,6 +842,7 @@ else:
                 # Generate a standardized PDF summary for this request and upload to Drive
                 request_dict_for_pdf = {
                     'Ticket ID': new_ticket_id,
+                    'Request Name': request_name,
                     'Project/Grant': project,
                     'Name': name,
                     'Email Address': email,
@@ -882,6 +888,7 @@ else:
 
                 new_row = {
                     'Ticket ID': new_ticket_id,
+                    'Request Name': request_name,
                     'Project/Grant': project,
                     'Name': name,
                     'Email Address': email,
@@ -952,6 +959,7 @@ else:
                         A new communications request has been submitted in the CGHPI Request System.
 
                         Ticket ID: {new_ticket_id}
+                        Request Name: {request_name}
                         Requestor Name: {name}
                         Requestor Email: {email}
                         Project/Grant: {project}
@@ -992,6 +1000,7 @@ else:
 
                     Here is a summary of your submission:
                     - Ticket ID: {new_ticket_id}
+                    - Request Name: {request_name}
                     - Project/Grant: {project}
                     - Request Type: {request_type}
                     - Type of Support Needed: {", ".join(type_support) if isinstance(type_support, list) else type_support}
@@ -1197,6 +1206,7 @@ else:
                 """, unsafe_allow_html=True)
 
                 def _render_request_details(row):
+                    st.markdown(f"**Request Name:** {row.get('Request Name', '')}")
                     st.markdown(f"**Project/Grant:** {row.get('Project/Grant', '')}")
                     st.markdown(f"**Request Type:** {row.get('Request Type', '')}")
                     st.markdown(f"**Type of Support Needed:** {row.get('Type of Support Needed', '')}")
@@ -1256,7 +1266,9 @@ else:
                         row_sub = submitted_df[submitted_df["Ticket ID"].astype(str) == selected_submitted_id].iloc[0]
                         idx_sub = management_df[management_df["Ticket ID"].astype(str) == selected_submitted_id].index[0]
                         requester_name_sub = row_sub.get("Name", "") or ""
-                        with st.expander(f"View request: {selected_submitted_id} – {requester_name_sub}", expanded=True):
+                        request_name_sub = row_sub.get("Request Name", "") or ""
+                        expander_label_sub = f"{selected_submitted_id} – {request_name_sub}" + (f" ({requester_name_sub})" if requester_name_sub else "")
+                        with st.expander(expander_label_sub, expanded=True):
                             _render_request_details(row_sub)
                             st.markdown("---")
                             new_status_sub = st.selectbox(
@@ -1342,7 +1354,9 @@ else:
                         row_ip = inprogress_df[inprogress_df["Ticket ID"].astype(str) == selected_inprogress_id].iloc[0]
                         idx_ip = management_df[management_df["Ticket ID"].astype(str) == selected_inprogress_id].index[0]
                         requester_name_ip = row_ip.get("Name", "") or ""
-                        with st.expander(f"View request: {selected_inprogress_id} – {requester_name_ip}", expanded=True):
+                        request_name_ip = row_ip.get("Request Name", "") or ""
+                        expander_label_ip = f"{selected_inprogress_id} – {request_name_ip}" + (f" ({requester_name_ip})" if requester_name_ip else "")
+                        with st.expander(expander_label_ip, expanded=True):
                             _render_request_details(row_ip)
                             st.markdown("---")
                             st.caption("Mark this request as **Completed**. Optionally add a message and attach output files.")
