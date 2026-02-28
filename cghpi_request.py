@@ -945,7 +945,7 @@ else:
                     st.cache_data.clear()
                     
                     # Send email notifications to coordinators (currently routed to Jiaqin Wu)
-                    coordinator_emails = ["jw2104@georgetown.edu"]
+                    coordinator_emails = ["ew898@georgetown.edu"]
 
                     subject = f"New Communications Request Submitted: {new_ticket_id}"
                     for coord_email in coordinator_emails:
