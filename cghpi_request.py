@@ -366,7 +366,22 @@ def _get_records_with_retry(spreadsheet_name, worksheet_name, retries=3, base_de
 
 @st.cache_data(ttl=600)
 def load_communication_sheet():
-    df = pd.DataFrame(_get_records_with_retry('CGHPI_Request_System', 'Communication'))
+    records = _get_records_with_retry('CGHPI_Request_System', 'Communication')
+    df = pd.DataFrame(records)
+
+    # Handle empty sheet: ensure expected columns exist so coordinator/requester logic works with blank df
+    required_cols = [
+        'Ticket ID', 'Status', 'Submit Date', 'Request Name', 'Project/Grant', 'Name',
+        'Email Address', 'Request Type', 'Type of Support Needed', 'Primary Purpose',
+        'Target Audience', 'Audience Action', 'Requested Due Date', 'Driver Deadline',
+        'Tie to Grant Deliverable', 'Priority Level', 'Background Share', 'Draft Copy',
+        'Key Points', 'Subject Matter', 'Share Externally', 'Information Include',
+        'Permission Secure', 'Estimated Length', 'Level of Design Support', 'Live',
+        'Status Message', 'Output Links', 'Closed Date', 'Request PDF Link',
+    ]
+    for col in required_cols:
+        if col not in df.columns:
+            df[col] = pd.NA
 
     # Normalize/construct a 'Submit Date' column robustly, since legacy sheets may use different headers.
     submit_date_col = None
