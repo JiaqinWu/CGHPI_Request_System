@@ -22,6 +22,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
+from xml.sax.saxutils import escape
 from PIL import Image as PILImage, ImageDraw, ImageFont
 import base64
 import urllib.request
@@ -200,6 +201,22 @@ def generate_request_pdf(request_dict):
             return ""
         return str(value)
 
+    # Cell style for wrapping long text in table cells (Paragraph wraps automatically)
+    cell_style = ParagraphStyle(
+        "TableCell",
+        parent=styles["Normal"],
+        fontSize=9,
+        fontName="Helvetica",
+        leading=10,
+    )
+
+    def wrap_cell(value):
+        """Convert value to Paragraph so long text wraps within table cell."""
+        text = fmt(value)
+        if not text or not str(text).strip():
+            return ""
+        return Paragraph(escape(str(text)), cell_style)
+
     ticket_id = fmt(request_dict.get("Ticket ID"))
     submit_date = fmt(request_dict.get("Submit Date"))
 
@@ -210,10 +227,10 @@ def generate_request_pdf(request_dict):
     # Basic info table
     request_name = fmt(request_dict.get("Request Name"))
     basic_data = [
-        ["Ticket ID", ticket_id, "Request Name", request_name],
-        ["Submit Date", submit_date, "Requestor Name", fmt(request_dict.get("Name"))],
-        ["Email Address", fmt(request_dict.get("Email Address")), "Project/Grant", fmt(request_dict.get("Project/Grant"))],
-        ["Request Type", fmt(request_dict.get("Request Type")), "", ""],
+        [wrap_cell("Ticket ID"), wrap_cell(ticket_id), wrap_cell("Request Name"), wrap_cell(request_name)],
+        [wrap_cell("Submit Date"), wrap_cell(submit_date), wrap_cell("Requestor Name"), wrap_cell(request_dict.get("Name"))],
+        [wrap_cell("Email Address"), wrap_cell(request_dict.get("Email Address")), wrap_cell("Project/Grant"), wrap_cell(request_dict.get("Project/Grant"))],
+        [wrap_cell("Request Type"), wrap_cell(request_dict.get("Request Type")), "", ""],
     ]
     basic_table = Table(basic_data, colWidths=[1.7 * inch, 2.3 * inch, 1.7 * inch, 2.3 * inch])
     basic_table.setStyle(
@@ -221,7 +238,7 @@ def generate_request_pdf(request_dict):
             [
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
                 ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f1f1f1")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
                 ("FONTSIZE", (0, 0), (-1, -1), 9),
             ]
@@ -233,12 +250,12 @@ def generate_request_pdf(request_dict):
     # Section: Request Details
     story.append(Paragraph("Request Details", section_title_style))
     details_data = [
-        ["Type of Support Needed", fmt(request_dict.get("Type of Support Needed"))],
-        ["Primary Purpose", fmt(request_dict.get("Primary Purpose"))],
-        ["Target Audience", fmt(request_dict.get("Target Audience"))],
-        ["Audience Action", fmt(request_dict.get("Audience Action"))],
-        ["Key Points to Include", fmt(request_dict.get("Key Points"))],
-        ["Subject Matter Expert", fmt(request_dict.get("Subject Matter"))],
+        [wrap_cell("Type of Support Needed"), wrap_cell(request_dict.get("Type of Support Needed"))],
+        [wrap_cell("Primary Purpose"), wrap_cell(request_dict.get("Primary Purpose"))],
+        [wrap_cell("Target Audience"), wrap_cell(request_dict.get("Target Audience"))],
+        [wrap_cell("Audience Action"), wrap_cell(request_dict.get("Audience Action"))],
+        [wrap_cell("Key Points to Include"), wrap_cell(request_dict.get("Key Points"))],
+        [wrap_cell("Subject Matter Expert"), wrap_cell(request_dict.get("Subject Matter"))],
     ]
     details_table = Table(details_data, colWidths=[2.2 * inch, 6.0 * inch])
     details_table.setStyle(
@@ -257,15 +274,15 @@ def generate_request_pdf(request_dict):
     # Section: Timeline & Priority
     story.append(Paragraph("Timeline & Priority", section_title_style))
     timeline_data = [
-        ["Requested Due Date", fmt(request_dict.get("Requested Due Date")), "Priority Level", fmt(request_dict.get("Priority Level"))],
-        ["Driver of Deadline", fmt(request_dict.get("Driver Deadline")), "Tied to Grant Deliverable", fmt(request_dict.get("Tie to Grant Deliverable"))],
+        [wrap_cell("Requested Due Date"), wrap_cell(request_dict.get("Requested Due Date")), wrap_cell("Priority Level"), wrap_cell(request_dict.get("Priority Level"))],
+        [wrap_cell("Driver of Deadline"), wrap_cell(request_dict.get("Driver Deadline")), wrap_cell("Tied to Grant Deliverable"), wrap_cell(request_dict.get("Tie to Grant Deliverable"))],
     ]
     timeline_table = Table(timeline_data, colWidths=[1.9 * inch, 2.1 * inch, 1.9 * inch, 2.1 * inch])
     timeline_table.setStyle(
         TableStyle(
             [
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
                 ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
                 ("FONTSIZE", (0, 0), (-1, -1), 9),
             ]
@@ -277,9 +294,9 @@ def generate_request_pdf(request_dict):
     # Section: Publishing & Compliance
     story.append(Paragraph("Publishing & Compliance", section_title_style))
     pub_data = [
-        ["Will this be shared externally?", fmt(request_dict.get("Share Externally"))],
-        ["Includes any sensitive information", fmt(request_dict.get("Information Include"))],
-        ["Permissions for photos/quotes secured", fmt(request_dict.get("Permission Secure"))],
+        [wrap_cell("Will this be shared externally?"), wrap_cell(request_dict.get("Share Externally"))],
+        [wrap_cell("Includes any sensitive information"), wrap_cell(request_dict.get("Information Include"))],
+        [wrap_cell("Permissions for photos/quotes secured"), wrap_cell(request_dict.get("Permission Secure"))],
     ]
     pub_table = Table(pub_data, colWidths=[2.8 * inch, 5.4 * inch])
     pub_table.setStyle(
@@ -298,9 +315,9 @@ def generate_request_pdf(request_dict):
     # Section: Scope & Format
     story.append(Paragraph("Scope & Format", section_title_style))
     scope_data = [
-        ["Estimated Length/Size", fmt(request_dict.get("Estimated Length"))],
-        ["Level of Design Support Needed", fmt(request_dict.get("Level of Design Support"))],
-        ["Where it will live", fmt(request_dict.get("Live"))],
+        [wrap_cell("Estimated Length/Size"), wrap_cell(request_dict.get("Estimated Length"))],
+        [wrap_cell("Level of Design Support Needed"), wrap_cell(request_dict.get("Level of Design Support"))],
+        [wrap_cell("Where it will live"), wrap_cell(request_dict.get("Live"))],
     ]
     scope_table = Table(scope_data, colWidths=[2.8 * inch, 5.4 * inch])
     scope_table.setStyle(
@@ -319,8 +336,8 @@ def generate_request_pdf(request_dict):
     # Section: Attachments (Drive links for materials and draft)
     story.append(Paragraph("Attachments (Google Drive)", section_title_style))
     attachments_data = [
-        ["Background materials (Drive)", fmt(request_dict.get("Background Share"))],
-        ["Draft copy (Drive)", fmt(request_dict.get("Draft Copy"))],
+        [wrap_cell("Background materials (Drive)"), wrap_cell(request_dict.get("Background Share"))],
+        [wrap_cell("Draft copy (Drive)"), wrap_cell(request_dict.get("Draft Copy"))],
     ]
     attachments_table = Table(attachments_data, colWidths=[2.2 * inch, 6.0 * inch])
     attachments_table.setStyle(
