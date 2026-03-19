@@ -677,10 +677,10 @@ else:
             )
         st.markdown("**SECTION 3: Content Inputs**")
         background_share = st.file_uploader(
-            "Upload any background materials if available.",accept_multiple_files=True, key="background_share"
+            "Upload any background materials (optional)", accept_multiple_files=True, key="background_share"
         )
         draft_copy = st.file_uploader(
-            "Upload draft copy if available.",accept_multiple_files=True, key="draft_copy"
+            "Upload draft copy (optional)", accept_multiple_files=True, key="draft_copy"
         )
 
         key_points = st.text_area("Key Points to Include *", placeholder="Please provide bullet points, messages, or required language. If none, type N/A.", height=150, key="key_points")
@@ -780,10 +780,6 @@ else:
                 errors.append("The field 'Is this tied to a grant deliverable?' is required.")
             if not priority_level:
                 errors.append("The field 'Priority Level' is required.")
-            if not background_share:
-                errors.append("The field 'Upload any background materials if available.' is required.")
-            if not draft_copy:
-                errors.append("The field 'Upload draft copy if available.' is required.")
             if not key_points:
                 errors.append("The field 'Key Points to Include' is required.")
             if not subject_matter:
